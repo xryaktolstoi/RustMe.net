@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RustMe Inspection Pro</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto+Mono:wght@300;400;500;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #000000;
+            --bg-secondary: #111111;
+            --bg-card: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --accent-glow: #ffffff;
+            --border-light: rgba(255,255,255,0.15);
+            --shadow-dark: rgba(0,0,0,0.9);
+        }
+
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        .glow-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(255,255,255,0.05) 0%, transparent 50%);
+            animation: glowShift 8s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        @keyframes glowShift {
+            0%, 100% { opacity: 0.7; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.1); }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .main-nav {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 50px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 2px solid var(--border-light);
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-btn:hover {
+            border-color: var(--accent-glow);
+            box-shadow: 0 0 20px rgba(255,255,255,0.3);
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(45deg, var(--accent-glow), #eeeeee);
+            color: #000;
+            box-shadow: 0 0 30px rgba(255,255,255,0.5);
+        }
+
+        .section {
+            display: none;
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 40px;
+            border: 2px solid var(--border-light);
+            box-shadow: 0 20px 60px var(--shadow-dark);
+            margin-bottom: 30px;
+        }
+
+        .section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            text-align: center;
+            padding: 60px 0;
+        }
+
+        .logo {
+            font-family: 'Orbitron', monospace;
+            font-size: 4em;
+            font-weight: 900;
+            background: linear-gradient(45deg, var(--accent-glow), #dddddd, var(--accent-glow));
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: logoShine 6s ease-in-out infinite;
+            letter-spacing: 6px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 40px var(--accent-glow);
+        }
+
+        @keyframes logoShine {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+
+        .status-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .status-card:hover {
+            border-color: var(--accent-glow);
+            box-shadow: 0 0 25px rgba(255,255,255,0.2);
+            transform: translateY(-5px);
+        }
+
+        .status-icon {
+            font-size: 2.5em;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        .status-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .status-text {
+            color: var(--text-secondary);
+            font-size: 1em;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 18px 25px;
+            border: 2px solid var(--border-light);
+            border-radius: 12px;
+            font-size: 1.1em;
+            background: rgba(255,255,255,0.03);
+            color: var(--text-primary);
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--accent-glow);
+            box-shadow: 0 0 20px rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.08);
+        }
+
+        .input-field::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, var(--accent-glow), #eeeeee);
+            color: #000;
+            border: none;
+            padding: 18px 40px;
+            font-size: 1.1em;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(255,255,255,0.2);
+            font-family: inherit;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(255,255,255,0.4);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #888888, #aaaaaa);
+            color: #000;
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #444444, #666666);
+            color: #ffffff;
+        }
+
+        .key-display {
+            background: linear-gradient(135deg, var(--accent-glow), #dddddd);
+            color: #000;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            font-family: 'Orbitron', monospace;
+            font-size: 1.6em;
+            font-weight: 900;
+            margin: 25px 0;
+            animation: keyGlow 2s infinite;
+            border: 2px solid var(--accent-glow);
+            box-shadow: 0 0 30px rgba(255,255,255,0.3);
+            letter-spacing: 4px;
+        }
+
+        @keyframes keyGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(255,255,255,0.4); }
+            50% { box-shadow: 0 0 40px rgba(255,255,255,0.6); }
+        }
+
+        .rules-list {
+            display: grid;
+            gap: 20px;
+        }
+
+        .rule-item {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-light);
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .rule-item:hover {
+            border-color: var(--accent-glow);
+            background: rgba(255,255,255,0.05);
+        }
+
+        .rule-number {
+            font-size: 1.5em;
+            font-weight: 900;
+            color: var(--accent-glow);
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 36px;
+            border: 2px solid var(--accent-glow);
+            margin-right: 15px;
+        }
+
+        .logout-btn {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: linear-gradient(45deg, #333333, #555555);
+            color: #ffffff;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            z-index: 100;
+            transition: all 0.3s ease;
+            border: 2px solid var(--border-light);
+        }
+
+        .logout-btn:hover {
+            background: linear-gradient(45deg, #555555, #777777);
+            box-shadow: 0 0 20px rgba(255,255,255,0.2);
+        }
+
+        .admin-only {
+            display: none;
+        }
+
+        .admin-nav {
+            background: linear-gradient(45deg, var(--accent-glow), #eeeeee);
+            color: #000;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(255,255,255,0.4);
+        }
+
+        .copyright {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-light);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .logo { font-size: 2.5em; }
+            .main-nav { flex-direction: column; align-items: center; }
+            .container { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="glow-bg"></div>
+    
+    <button class="logout-btn hidden" id="logoutBtn">ВЫХОД</button>
+
+    <div class="container">
+        <!-- Навигация -->
+        <div class="main-nav">
+            <button class="nav-btn active" onclick="showSection('auth')">АВТОРИЗАЦИЯ</button>
+            <button class="nav-btn" onclick="showSection('status')">СТАТУС</button>
+            <button class="nav-btn" onclick="showSection('rules')">ПРАВИЛА</button>
+            <button class="nav-btn hidden" id="downloadNavBtn" onclick="showSection('download')">СКАЧАТЬ</button>
+            <button class="nav-btn admin-nav hidden" id="adminNavBtn" onclick="showSection('admin')">АДМИН</button>
+        </div>
+
+        <!-- Header -->
+        <div class="header">
+            <h1 class="logo">RUSTME INSPECTION</h1>
+            <p class="subtitle">PROFESSIONAL VERSION 2026</p>
+        </div>
+
+        <!-- Раздел 1: Авторизация -->
+        <div id="auth" class="section active">
+            <div class="status-grid">
+                <div class="status-card">
+                    <span class="status-icon" id="statusIcon">🔍</span>
+                    <div class="status-title" id="statusTitle">ГОСТЬ</div>
+                    <div class="status-text" id="statusText">ОБМЕЖЕННЫЙ ДОСТУП</div>
+                </div>
+                <div class="status-card">
+                    <span class="status-icon">🔑</span>
+                    <div class="status-title">ИСПОЛЬЗОВАННЫХ КЛЮЧЕЙ</div>
+                    <div class="status-text" id="usedKeysCount">0</div>
+                </div>
+            </div>
+
+            <!-- Регистрация -->
+            <div class="form-group">
+                <h3 style="margin-bottom: 20px; color: var(--text-secondary);">РЕГИСТРАЦИЯ</h3>
+                <input type="text" class="input-field" id="regUsername" placeholder="ЛОГИН" maxlength="20">
+                <input type="password" class="input-field" id="regPassword" placeholder="ПАРОЛЬ" maxlength="20">
+                <button class="btn" onclick="registerUser()">ЗАРЕГИСТРИРОВАТЬСЯ</button>
+                <div id="regStatus"></div>
+            </div>
+
+            <!-- Вход -->
+            <div style="margin-top: 40px;">
+                <h3 style="margin-bottom: 20px; color: var(--text-secondary);">ВХОД</h3>
+                <input type="text" class="input-field" id="loginUsername" placeholder="ЛОГИН" maxlength="20">
+                <input type="password" class="input-field" id="loginPassword" placeholder="ПАРОЛЬ">
+                <button class="btn" onclick="loginUser()">ВОЙТИ</button>
+                <div id="loginStatus"></div>
+            </div>
+
+            <!-- Активация ключа -->
+            <div style="margin-top: 40px;">
+                <h3 style="margin-bottom: 20px; color: var(--text-secondary);">АКТИВАЦИЯ КЛЮЧА</h3>
+                <input type="text" class="input-field" id="keyInput" placeholder="PROVERKA-XXXXXXXXX" maxlength="18">
+                <button class="btn btn-secondary" onclick="activateKey()">АКТИВИРОВАТЬ</button>
+                <div id="activationStatus"></div>
+            </div>
+        </div>
+
+        <!-- Раздел 2: Статус -->
+        <div id="status" class="section">
+            <h2 style="font-family: 'Orbitron'; text-align: center; font-size: 2.5em; margin-bottom: 40px; background: linear-gradient(45deg, var(--accent-glow), #dddddd); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">СТАТУС СИСТЕМЫ</h2>
+            <div class="status-grid">
+                <div class="status-card">
+                    <span class="status-icon">⏰</span>
+                    <div class="status-title">СЕССИЯ АКТИВНА</div>
+                    <div class="status-text" id="sessionTime">00:00:00</div>
+                </div>
+                <div class="status-card">
+                    <span class="status-icon">👥</span>
+                    <div class="status-title">АККАУНТ</div>
+                    <div class="status-text" id="currentUser">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Раздел 3: Правила -->
+        <div id="rules" class="section">
+            <h2 style="font-family: 'Orbitron'; text-align: center; font-size: 2.5em; margin-bottom: 40px; background: linear-gradient(45deg, var(--accent-glow), #dddddd); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">ПРАВИЛА СИСТЕМЫ</h2>
+            <div class="rules-list">
+                <div class="rule-item">
+                    <span class="rule-number">1</span>
+                    <div>ИСПОЛЬЗОВАНИЕ ТОЛЬКО ДЛЯ ЛЕГАЛЬНЫХ RUST СЕРВЕРОВ</div>
+                </div>
+                <div class="rule-item">
+                    <span class="rule-number">2</span>
+                    <div>НЕ БОЛЕЕ 5 ПРОВЕРОК С ОДНОГО IP В ЧАС</div>
+                </div>
+                <div class="rule-item">
+                    <span class="rule-number">3</span>
+                    <div>ДАННЫЕ УДАЛЯЮТСЯ ЧЕРЕЗ 24 ЧАСА</div>
+                </div>
+                <div class="rule-item">
+                    <span class="rule-number">4</span>
+                    <div>СПАМ В ПОДДЕРЖКУ = БАН</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Раздел 4: Админ панель (только для админов) -->
+        <div id="admin" class="section admin-only">
+            <h2 style="font-family: 'Orbitron'; text-align: center; font-size: 2.5em; margin-bottom: 40px; background: linear-gradient(45deg, var(--accent-glow), #dddddd); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">🔥 АДМИН ПАНЕЛЬ 🔥</h2>
+            <p style="text-align: center; color: var(--text-secondary); margin-bottom: 30px;">RoftikDEV / ZovDEV Панель управления</p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                <button class="btn" onclick="generateKey()">ГЕНЕРАТОР КЛЮЧЕЙ</button>
+                <button class="btn btn-secondary" onclick="clearAllKeys()">ОЧИСТИТЬ КЛЮЧИ</button>
+                <button class="btn btn-danger" onclick="resetAllData()">RESET СИСТЕМЫ</button>
+                <button class="btn btn-secondary" onclick="showAllUsers()">СПИСОК ПОЛЬЗОВАТЕЛЕЙ</button>
+            </div>
+            <div id="generatedKey" class="key-display" style="display: none;"></div>
+            <div id="adminStats" style="margin-top: 30px;"></div>
+        </div>
+
+        <!-- Раздел 5: Скачивание -->
+        <div id="download" class="section">
+            <h2 style="font-family: 'Orbitron'; text-align: center; font-size: 2.5em; margin-bottom: 40px; background: linear-gradient(45deg, var(--accent-glow), #dddddd); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">СКАЧАТЬ ПРОГРАММУ</h2>
+            <p style="text-align: center; font-size: 1.2em; color: var(--text-secondary); margin-bottom: 40px;">
+                ДОСТУП ТОЛЬКО ДЛЯ РОЛИ PROVERKA
+            </p>
+            <div style="text-align: center;">
+                <a href="https://raw.githubusercontent.com/xryaktolstoi/provafiles/refs/heads/main/InspectionRM11.rar" 
+                   class="btn" style="display: none; font-size: 1.4em; padding: 25px 70px; margin: 20px;"
+                   id="downloadBtn">
+                   СКАЧАТЬ INSPECTION
+                </a>
+            </div>
+        </div>
+
+        <!-- Copyright -->
+        <div class="copyright">
+            ВСЕ ПРАВА ЗАЩИЩЕНЫ © 2026 RUSTME INSPECTION
+        </div>
+    </div>
+
+    <script>
+        // === КОНФИГУРАЦИЯ АДМИНОВ ===
+        const ADMIN_USERS = ['RoftikDEV', 'ZovDEV'];
+        const ADMIN_PASSWORD = 'ratkadev';
+
+        // === СОСТОЯНИЕ ===
+        let currentUser = localStorage.getItem('currentUser') || null;
+        let userRole = localStorage.getItem('userRole') || 'guest';
+        let userData = JSON.parse(localStorage.getItem('userData')) || {};
+        let usedKeys = JSON.parse(localStorage.getItem('usedKeys')) || [];
+        let isAdminLoggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
+        let sessionStart = localStorage.getItem('sessionStart') || Date.now();
+
+        // === ИНИЦИАЛИЗАЦИЯ ===
+        function init() {
+            loadState();
+            updateUI();
+            startSessionTimer();
+        }
+
+        // === НАВИГАЦИЯ ===
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // === РЕГИСТРАЦИЯ ===
+        function registerUser() {
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const statusEl = document.getElementById('regStatus');
+            
+            if (!username || !password || username.length < 3) {
+                showStatus(statusEl, 'ЛОГИН ОТ 3 СИМВОЛЕЙ', 'error');
+                return;
+            }
+            
+            if (userData[username]) {
+                showStatus(statusEl, 'ПОЛЬЗОВАТЕЛЬ УЖЕ СУЩЕСТВУЕТ', 'error');
+                return;
+            }
+            
+            userData[username] = {
+                password: btoa(password),
+                role: 'user',
+                registered: Date.now()
+            };
+            
+            localStorage.setItem('userData', JSON.stringify(userData));
+            showStatus(statusEl, '✓ РЕГИСТРАЦИЯ УСПЕШНА', 'success');
+            clearInputs('regUsername', 'regPassword');
+        }
+
+        // === ВХОД ===
+        function loginUser() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const statusEl = document.getElementById('loginStatus');
+            
+            // Проверка админов RoftikDEV / ZovDEV
+            if (ADMIN_USERS.includes(username) && password === ADMIN_PASSWORD) {
+                currentUser = username;
+                userRole = 'admin';
+                isAdminLoggedIn = true;
+                
+                localStorage.setItem('currentUser', currentUser);
+                localStorage.setItem('userRole', 'admin');
+                localStorage.setItem('isAdminLoggedIn', 'true');
+                localStorage.setItem('sessionStart', Date.now());
+                
+                showStatus(statusEl, `✓ ВХОД АДМИНА: ${username.toUpperCase()}`, 'success');
+                updateUI();
+                clearInputs('loginUsername', 'loginPassword');
+                return;
+            }
+            
+            // Обычные пользователи
+            if (!userData[username] || userData[username].password !== btoa(password)) {
+                showStatus(statusEl, '× НЕВЕРНЫЙ ЛОГИН ИЛИ ПАРОЛЬ', 'error');
+                shakeElement('loginUsername');
+                return;
+            }
+            
+            currentUser = username;
+            userRole = userData[username].role;
+            
+            localStorage.setItem('currentUser', currentUser);
+            localStorage.setItem('userRole', userRole);
+            localStorage.setItem('sessionStart', Date.now());
+            
+            showStatus(statusEl, '✓ ВХОД УСПЕШЕН', 'success');
+            updateUI();
+            clearInputs('loginUsername', 'loginPassword');
+        }
+
+        // === АКТИВАЦИЯ КЛЮЧА ===
+        function activateKey() {
+            const keyInput = document.getElementById('keyInput').value.trim().toUpperCase();
+            const statusEl = document.getElementById('activationStatus');
+            
+            if (usedKeys.includes(keyInput)) {
+                showStatus(statusEl, '× КЛЮЧ УЖЕ ИСПОЛЬЗОВАН', 'error');
+                return;
+            }
+            
+            if (/^PROVERKA-[A-Z0-9]{8}$/.test(keyInput)) {
+                usedKeys.push(keyInput);
+                if (currentUser && userData[currentUser]) {
+                    userData[currentUser].role = 'proverka';
+                    userRole = 'proverka';
+                    localStorage.setItem('userData', JSON.stringify(userData));
+                }
+                localStorage.setItem('usedKeys', JSON.stringify(usedKeys));
+                localStorage.setItem('userRole', 'proverka');
+                
+                showStatus(statusEl, '✓ ПРОЛУЧЕНА РОЛЬ PROVERKA', 'success');
+                updateUI();
+            } else {
+                showStatus(statusEl, '× НЕВЕРНЫЙ ФОРМАТ КЛЮЧА', 'error');
+            }
+            document.getElementById('keyInput').value = '';
+        }
+
+        // === АДМИН ФУНКЦИИ ===
+        function generateKey() {
+            if (userRole !== 'admin') return alert('🔒 АДМИН ТОЛЬКО');
+            const key = `PROVERKA-${Math.random().toString(36).substr(2, 8).toUpperCase()}`;
+            const keyEl = document.getElementById('generatedKey');
+            keyEl.textContent = `${key} ✓ СОЗДАН ${new Date().toLocaleTimeString()}`;
+            keyEl.style.display = 'block';
+            setTimeout(() => keyEl.style.display = 'none', 20000);
+        }
+
+        function clearAllKeys() {
+            if (userRole !== 'admin') return;
+            if (confirm('ОЧИСТИТЬ ВСЕ КЛЮЧИ?')) {
+                usedKeys = [];
+                localStorage.setItem('usedKeys', '[]');
+                updateUI();
+                alert('✓ КЛЮЧИ ОЧИЩЕНЫ');
+            }
+        }
+
+        function resetAllData() {
+            if (userRole !== 'admin') return;
+            if (confirm('СБРОСИТЬ ВСЕ ДАННЫЕ СИСТЕМЫ?')) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        function showAllUsers() {
+            if (userRole !== 'admin') return;
+            let stats = '<h3 style="color: var(--accent-glow);">📊 СТАТИСТИКА ПОЛЬЗОВАТЕЛЕЙ</h3>';
+            stats += '<div style="display: grid; gap: 10px; margin-top: 20px;">';
+            for (let user in userData) {
+                stats += `<div style="padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                    ${user} → ${userData[user].role} (${new Date(userData[user].registered).toLocaleDateString()})
+                </div>`;
+            }
+            stats += `</div><div style="margin-top: 15px; color: var(--text-secondary);">Всего: ${Object.keys(userData).length} пользователей</div>`;
+            document.getElementById('adminStats').innerHTML = stats;
+        }
+
+        // === UI ОБНОВЛЕНИЕ ===
+        function updateUI() {
+            document.getElementById('usedKeysCount').textContent = usedKeys.length;
+            document.getElementById('currentUser').textContent = currentUser || 'НЕ АВТОРИЗОВАН';
+            
+            const statusIcon = document.getElementById('statusIcon');
+            const statusTitle = document.getElementById('statusTitle');
+            const statusText = document.getElementById('statusText');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const downloadNavBtn = document.getElementById('downloadNavBtn');
+            const adminNavBtn = document.getElementById('adminNavBtn');
+            const adminSection = document.getElementById('admin');
+            const logoutBtn = document.getElementById('logoutBtn');
+            
+            switch(userRole) {
+                case 'proverka':
+                    statusIcon.textContent = '🖤';
+                    statusTitle.textContent = 'PROVERKA';
+                    statusText.textContent = 'ПОЛНЫЙ ДОСТУП';
+                    downloadBtn.style.display = 'inline-block';
+                    downloadNavBtn.classList.remove('hidden');
+                    adminNavBtn.classList.add('hidden');
+                    adminSection.classList.add('admin-only');
+                    break;
+                case 'admin':
+                    statusIcon.textContent = '🔥';
+                    statusTitle.textContent = currentUser.toUpperCase();
+                    statusText.textContent = 'СУПЕР АДМИН';
+                    downloadBtn.style.display = 'inline-block';
+                    downloadNavBtn.classList.remove('hidden');
+                    adminNavBtn.classList.remove('hidden');
+                    adminSection.classList.remove('admin-only');
+                    logoutBtn.classList.remove('hidden');
+                    break;
+                default:
+                    statusIcon.textContent = '🔍';
+                    statusTitle.textContent = 'ГОСТЬ';
+                    statusText.textContent = 'ОБМЕЖЕННЫЙ ДОСТУП';
+                    downloadBtn.style.display = 'none';
+                    downloadNavBtn.classList.add('hidden');
+                    adminNavBtn.classList.add('hidden');
+                    adminSection.classList.add('admin-only');
+                    logoutBtn.classList.add('hidden');
+            }
+        }
+
+        // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
+        function showStatus(element, message, type) {
+            element.innerHTML = `<strong>${message}</strong>`;
+            element.style.color = type === 'success' ? '#ffffff' : '#ff4444';
+            setTimeout(() => element.textContent = '', 4000);
+        }
+
+        function clearInputs(...ids) {
+            ids.forEach(id => document.getElementById(id).value = '');
+        }
+
+        function shakeElement(id) {
+            const el = document.getElementById(id);
+            el.style.animation = 'shake 0.5s';
+            setTimeout(() => el.style.animation = '', 500);
+        }
+
+        function startSessionTimer() {
+            setInterval(() => {
+                const elapsed = Math.floor((Date.now() - sessionStart) / 1000);
+                const h = Math.floor(elapsed / 3600);
+                const m = Math.floor((elapsed % 3600) / 60);
+                const s = elapsed % 60;
+                document.getElementById('sessionTime').textContent = 
+                    `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            }, 1000);
+        }
+
+        function loadState() {
+            if (isAdminLoggedIn && ADMIN_USERS.includes(currentUser)) {
+                userRole = 'admin';
+                document.getElementById('logoutBtn').classList.remove('hidden');
+            }
+        }
+
+        // === СОБЫТИЯ КЛАВИШ ===
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const activeEl = document.activeElement;
+                if (activeEl.id === 'keyInput') activateKey();
+                if (activeEl.id === 'loginPassword') loginUser();
+                if (activeEl.id === 'regPassword') registerUser();
+            }
+        });
+
+        document.getElementById('logoutBtn').onclick = () => {
+            localStorage.clear();
+            location.reload();
+        };
+
+        // === ЗАПУСК ===
+        window.addEventListener('load', init);
+    </script>
+
+    <style>
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+    </style>
+</body>
+</html>
